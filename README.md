@@ -69,7 +69,7 @@ You would redirected (`302 Found`) to original URL.
 
 ## 🔧 Configuration
 
-Сервис можно настроить с помощью переменных окружения:
+The service can be configured using environment variables:
 
 | Variable | Definition                | Default value |
 |------------|-------------------------|-----------------------|
