@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cobrich/url-shortener/handler"
+	"github.com/cobrich/url-shortener/storage"
 )
 
 func main() {
@@ -20,7 +21,8 @@ func main() {
 
 	port := ":8080"
 
-	handler := handler.NewHandler()
+	storage := storage.NewStorage()
+	handler := handler.NewHandler(storage)
 
 	router := http.NewServeMux()
 	router.HandleFunc("/{short_code}", handler.GetLongURLHundler)

@@ -13,12 +13,12 @@ import (
 )
 
 type Handler struct {
-	Urls *map[string]string
+	storage *storage.Storage
 	Mu   *sync.RWMutex
 }
 
-func NewHandler() *Handler {
-	return &Handler{Urls: &storage.Urls, Mu: &sync.RWMutex{}}
+func NewHandler(st *storage.Storage) *Handler {
+	return &Handler{storage: st, Mu: &sync.RWMutex{}}
 }
 
 func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
@@ -28,11 +28,9 @@ func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := r.PathValue("short_code")
+	code := r.PathValue("short_code")
 
-	h.Mu.RLock()
-	value, ok := (*h.Urls)[key]
-	h.Mu.RUnlock()
+	url, ok := h.storage.Get(code)
 
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
@@ -40,11 +38,11 @@ func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		log.Printf("INFO: redirected %s to %s", key, value)
+		log.Printf("INFO: redirected %s to %s", code, url)
 	}()
 
 	w.WriteHeader(http.StatusFound)
-	w.Write([]byte(value))
+	w.Write([]byte(url))
 }
 
 func (h *Handler) CreateShortURLHundler(w http.ResponseWriter, r *http.Request) {
@@ -65,17 +63,16 @@ func (h *Handler) CreateShortURLHundler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	short_code, err := utils.Generate_Short_Code()
+	code, err := utils.Generate_Short_Code()
 	if err != nil {
 		req := dtos.RequestErrorDTO{Error: err.Error()}
 		json.NewEncoder(w).Encode(req)
 		return
 	}
-	h.Mu.Lock()
-	(*h.Urls)[short_code] = url
-	h.Mu.Unlock()
 
-	req := dtos.RequestCreateShortURLDTO{Short_code: short_code}
+	h.storage.Save(code, url)
+
+	req := dtos.RequestCreateShortURLDTO{Short_code: code}
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(req)
 }
