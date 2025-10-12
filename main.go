@@ -25,8 +25,8 @@ func main() {
 	handler := handler.NewHandler(storage)
 
 	router := http.NewServeMux()
-	router.HandleFunc("/{short_code}", handler.GetLongURLHundler)
-	router.HandleFunc("/shorten", handler.CreateShortURLHundler)
+	router.HandleFunc("GET /{short_code}", handler.GetLongURLHundler)
+	router.HandleFunc("POST /shorten", handler.CreateShortURLHundler)
 
 	server := &http.Server{
 		Addr:    port,

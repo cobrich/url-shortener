@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/cobrich/url-shortener/dtos"
 	"github.com/cobrich/url-shortener/storage"
@@ -20,12 +19,6 @@ func NewHandler(st *storage.Storage) *Handler {
 }
 
 func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
-	time.Sleep(5 * time.Second)
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	code := r.PathValue("short_code")
 
 	url, ok := h.storage.Get(code)
@@ -43,34 +36,46 @@ func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateShortURLHundler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	req := dtos.RequestCreateShortURLDTO{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+
 	url := req.Url
 
 	ok := utils.IsUrlReachable(url)
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
+		utils.RespondWithError(w, http.StatusBadRequest, "The provided URL is not reachable")
 		return
 	}
 
-	code, err := utils.GenerateShortCode()
-	if err != nil {
-		req := dtos.RequestErrorDTO{Error: err.Error()}
-		json.NewEncoder(w).Encode(req)
+	if !ok {
+		http.NotFound(w, r)
 		return
+	}
+
+	var code string
+	for i := 0; i < 10; i++ {
+		code, err := utils.GenerateShortCode()
+		if err != nil {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate short code")
+			return
+		}
+
+		_, ok = h.storage.Get(code)
+		if !ok {
+			break
+		}
+
+		if i == 9 {
+			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate a unique short code after several attempts")
+			return
+		}
 	}
 
 	h.storage.Save(code, url)
 
 	resp := dtos.ResponseCreateShortURLDTO{ShortCode: code}
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(resp)
+	utils.RespondWithJSON(w, http.StatusCreated, resp)
 }
