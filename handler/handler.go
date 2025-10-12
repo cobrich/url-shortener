@@ -37,7 +37,8 @@ func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) CreateShortURLHundler(w http.ResponseWriter, r *http.Request) {
 	req := dtos.RequestCreateShortURLDTO{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
@@ -50,14 +51,9 @@ func (h *Handler) CreateShortURLHundler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !ok {
-		http.NotFound(w, r)
-		return
-	}
-
 	var code string
 	for i := 0; i < 10; i++ {
-		code, err := utils.GenerateShortCode()
+		code, err = utils.GenerateShortCode()
 		if err != nil {
 			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate short code")
 			return
