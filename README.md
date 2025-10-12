@@ -73,7 +73,7 @@ The service can be configured using environment variables:
 
 | Variable | Definition                | Default value |
 |------------|-------------------------|-----------------------|
-| `PORT`     | Порт, на котором работает сервер | `8080`                |
+| `PORT`     | The port on which the server is running | `8080`                |
 
 <!-- 
 ## 🧪 Запуск тестов
