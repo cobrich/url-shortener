@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/cobrich/url-shortener/dtos"
 	"github.com/cobrich/url-shortener/storage"
@@ -12,14 +14,15 @@ import (
 
 type Handler struct {
 	Urls *map[string]string
-	Mu   *sync.Mutex
+	Mu   *sync.RWMutex
 }
 
 func NewHandler() *Handler {
-	return &Handler{Urls: &storage.Urls, Mu: &sync.Mutex{}}
+	return &Handler{Urls: &storage.Urls, Mu: &sync.RWMutex{}}
 }
 
 func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(5 * time.Second)
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -27,14 +30,19 @@ func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
 
 	key := r.PathValue("short_code")
 
-	h.Mu.Lock()
+	h.Mu.RLock()
 	value, ok := (*h.Urls)[key]
-	h.Mu.Unlock()
+	h.Mu.RUnlock()
 
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Long URL Not Found for short key!"))
 	}
+
+	go func() {
+		log.Printf("INFO: redirected %s to %s", key, value)
+	}()
+
 	w.WriteHeader(http.StatusFound)
 	w.Write([]byte(value))
 }
