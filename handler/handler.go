@@ -22,7 +22,7 @@ func NewHandler(st *storage.Storage) *Handler {
 func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
 	time.Sleep(5 * time.Second)
 	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusNotFound)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -31,29 +31,29 @@ func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
 	url, ok := h.storage.Get(code)
 
 	if !ok {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Long URL Not Found for short key!"))
+		http.NotFound(w, r)
+		return
 	}
 
 	go func() {
 		log.Printf("INFO: redirected %s to %s", code, url)
 	}()
 
-	w.WriteHeader(http.StatusFound)
-	w.Write([]byte(url))
+	http.Redirect(w, r, url, http.StatusFound)
 }
 
 func (h *Handler) CreateShortURLHundler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusNotFound)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	resp := dtos.ResponseCreateShortURLDTO{}
-	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	req := dtos.RequestCreateShortURLDTO{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
 	}
-	url := resp.Url
+	url := req.Url
 
 	ok := utils.IsUrlReachable(url)
 	if !ok {
@@ -61,7 +61,7 @@ func (h *Handler) CreateShortURLHundler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	code, err := utils.Generate_Short_Code()
+	code, err := utils.GenerateShortCode()
 	if err != nil {
 		req := dtos.RequestErrorDTO{Error: err.Error()}
 		json.NewEncoder(w).Encode(req)
@@ -70,7 +70,7 @@ func (h *Handler) CreateShortURLHundler(w http.ResponseWriter, r *http.Request) 
 
 	h.storage.Save(code, url)
 
-	req := dtos.RequestCreateShortURLDTO{Short_code: code}
+	resp := dtos.ResponseCreateShortURLDTO{ShortCode: code}
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(req)
+	json.NewEncoder(w).Encode(resp)
 }

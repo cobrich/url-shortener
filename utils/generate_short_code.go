@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 )
 
-func Generate_Short_Code() (string, error){
+func GenerateShortCode() (string, error) {
 	short_code := make([]byte, 6)
 	_, err := rand.Read(short_code)
 	if err != nil {

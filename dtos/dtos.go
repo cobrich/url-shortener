@@ -1,13 +1,13 @@
 package dtos
 
-type ResponseCreateShortURLDTO struct{
-	Url string `json:"url"` 
+type ResponseCreateShortURLDTO struct {
+	ShortCode string `json:"short_code"`
 }
 
-type RequestCreateShortURLDTO struct{
-	Short_code string `json:"short_code"`
+type RequestCreateShortURLDTO struct {
+	Url string `json:"url"`
 }
 
-type RequestErrorDTO struct{
+type RequestErrorDTO struct {
 	Error string `json:"error"`
 }
