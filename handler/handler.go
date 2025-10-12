@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/cobrich/url-shortener/dtos"
@@ -14,11 +13,10 @@ import (
 
 type Handler struct {
 	storage *storage.Storage
-	Mu   *sync.RWMutex
 }
 
 func NewHandler(st *storage.Storage) *Handler {
-	return &Handler{storage: st, Mu: &sync.RWMutex{}}
+	return &Handler{storage: st}
 }
 
 func (h *Handler) GetLongURLHundler(w http.ResponseWriter, r *http.Request) {
