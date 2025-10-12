@@ -25,13 +25,15 @@ This project is a minimalistic API for creating short links and redirecting to t
     cd url-shortener
     ```
 
-2.  **Buil project:**
+2.  **Build project:**
     ```bash
-    go build -o url-shortener ./cmd/main.go
+    # This will create an executable named 'url-shortener' (on Linux/macOS)
+    # or 'url-shortener.exe' (on Windows)
+    go build
     ```
-    *or juct run for development:*
+    *or just run for development:*
     ```bash
-    go run ./cmd/main.go
+    go run .
     ```
 
 ## ▶️ Usage
@@ -52,7 +54,7 @@ curl -X POST http://localhost:8080/shorten \
 **Respone:**
 ```json
 {
-  "short_url": "http://localhost:8080/aB3xZ9"
+  "short_code": "http://localhost:8080/aB3xZ9"
 }
 ```
 
@@ -64,7 +66,7 @@ Just navigate with generated short link in browser or use `curl`:
 curl -vL http://localhost:8080/aB3xZ9
 ```
 You would redirected (`302 Found`) to original URL.
-<!-- 
+
 ## 🔧 Configuration
 
 Сервис можно настроить с помощью переменных окружения:
@@ -72,9 +74,8 @@ You would redirected (`302 Found`) to original URL.
 | Переменная | Описание                | Значение по умолчанию |
 |------------|-------------------------|-----------------------|
 | `PORT`     | Порт, на котором работает сервер | `8080`                |
-| `...`      | (Добавьте другие, если есть) | `...`                 |
 
-
+<!-- 
 ## 🧪 Запуск тестов
 
 Для запуска всех тестов в проекте выполните команду:
@@ -82,6 +83,34 @@ You would redirected (`302 Found`) to original URL.
 ```bash
 go test ./... -v
 ``` -->
+
+## 📖 API Endpoints
+
+### `POST /shorten`
+Creates a new short URL.
+
+*   **Request Body:**
+    ```json
+    {
+      "url": "https://your-long-url.com/goes/here"
+    }
+    ```
+*   **Success Response (201 Created):**
+    ```json
+    {
+      "short_code": "aB3xZ9"
+    }
+    ```
+*   **Error Responses:**
+    *   `400 Bad Request`: If the JSON is invalid or the URL is not reachable.
+    *   `500 Internal Server Error`: If a unique code cannot be generated.
+
+### `GET /{short_code}`
+Redirects to the original long URL.
+
+*   **Example:** `GET /aB3xZ9`
+*   **Success Response:** `302 Found` redirect to the original URL.
+*   **Error Response:** `404 Not Found` if the code does not exist.
 
 ## 🤝 Contributing to the project
 
@@ -95,6 +124,6 @@ I always welcome help! If you want to improve the project:
 
 Please report any bugs in the [Issues](https://github.com/cobrich/url-shortener/issues) section.
 
-<!-- ## 📄 Лицензия
+## 📄 License
 
-Этот проект распространяется под лицензией MIT. Подробности смотрите в файле `LICENSE`. -->
+This project is distributed under the MIT license. For details, see the `LICENSE` file.

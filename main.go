@@ -11,15 +11,19 @@ import (
 
 	"github.com/cobrich/url-shortener/handler"
 	"github.com/cobrich/url-shortener/storage"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using default or OS environment variables")
+	}
+	
 	quit := make(chan os.Signal, 1)
 
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-	port := ":8080"
+	port := os.Getenv("PORT")
 
 	storage := storage.NewStorage()
 	handler := handler.NewHandler(storage)
