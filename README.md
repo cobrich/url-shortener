@@ -75,14 +75,14 @@ The service can be configured using environment variables:
 |------------|-------------------------|-----------------------|
 | `PORT`     | The port on which the server is running | `8080`                |
 
-<!-- 
-## 🧪 Запуск тестов
 
-Для запуска всех тестов в проекте выполните команду:
+## 🧪 Run test
+
+For running all test in project run command:
 
 ```bash
 go test ./... -v
-``` -->
+```
 
 ## 📖 API Endpoints
 
