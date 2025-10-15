@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/cobrich/url-shortener/dtos"
+	"github.com/cobrich/url-shortener/shortener"
 	"github.com/cobrich/url-shortener/storage"
 	"github.com/cobrich/url-shortener/utils"
 )
@@ -45,15 +46,16 @@ func (h *Handler) CreateShortURLHundler(w http.ResponseWriter, r *http.Request) 
 
 	url := req.Url
 
-	ok := utils.IsUrlReachable(url)
+	ok := utils.IsUrlReachableProd(url)
 	if !ok {
 		utils.RespondWithError(w, http.StatusBadRequest, "The provided URL is not reachable")
 		return
 	}
 
 	var code string
+	length := 6
 	for i := 0; i < 10; i++ {
-		code, err = utils.GenerateShortCode()
+		code, err = shortener.GenerateSecureString(length)
 		if err != nil {
 			utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate short code")
 			return

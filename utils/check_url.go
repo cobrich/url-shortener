@@ -26,15 +26,13 @@ func isValidUrl(rawUrl string) bool {
 	return true
 }
 
-func IsUrlReachable(rawUrl string) bool {
-	if !isValidUrl(rawUrl){
+// IsUrlReachable теперь принимает HTTPClient
+func IsUrlReachable(rawUrl string, client HTTPClient) bool {
+	if !isValidUrl(rawUrl) {
 		return false
 	}
-
-	client := http.Client{
-		Timeout: 3*time.Second,
-	}
-
+    
+    // Используем переданный клиент
 	resp, err := client.Head(rawUrl)
 	if err != nil {
 		return false
@@ -43,3 +41,8 @@ func IsUrlReachable(rawUrl string) bool {
 	return resp.StatusCode >= 200 && resp.StatusCode < 400
 }
 
+// Создадим "прод" версию, которую будем использовать в реальном коде
+func IsUrlReachableProd(rawUrl string) bool {
+    client := &http.Client{Timeout: 3 * time.Second}
+    return IsUrlReachable(rawUrl, client)
+}
